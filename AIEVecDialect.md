@@ -362,6 +362,41 @@ Effects: `MemoryEffects::Effect{}`
 
 
 
+### `aievec.exp` (::xilinx::aievec::ExpOp)
+
+_AIE vector exponential_
+
+Syntax:
+
+```
+operation ::= `aievec.exp` $source attr-dict `:` type($result)
+```
+
+AMD-specific intrinsic that computes the exponential of the input vector.
+For AIE2P, this will be lowered to the exp2 intrinsic using the identity
+exp(x) = exp2(x * log2(e)).
+`$result = exp(`$source`).
+
+Traits: `AlwaysSpeculatableImplTrait`
+
+Interfaces: `ConditionallySpeculatable`, `InferTypeOpInterface`, `NoMemoryEffect (MemoryEffectOpInterface)`
+
+Effects: `MemoryEffects::Effect{}`
+
+#### Operands:
+
+| Operand | Description |
+| :-----: | ----------- |
+| `source` | vector of any type values |
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | vector of any type values |
+
+
+
 ### `aievec.ext` (::xilinx::aievec::ExtOp)
 
 _AIE ext_
@@ -597,6 +632,54 @@ Effects: `MemoryEffects::Effect{}`
 | Result | Description |
 | :----: | ----------- |
 | `result` | a vector compatible with an accumulator of matrix-multiply and accumulate |
+
+
+
+### `aievec.matmul_aie2p` (::xilinx::aievec::MatMulOp_AIE2P)
+
+_AIE2P matrix-multiply and accummulate_
+
+Syntax:
+
+```
+operation ::= `aievec.matmul_aie2p` $lhs `,` $rhs `,` $acc attr-dict `:` type($lhs) `,`
+              type($rhs) `into` type($acc)
+```
+
+AMD AIEv2P-specific intrinsic that performs a matrix multiplication
+between `lhs` and `rhs`, and accumulates the result in `acc`.
+
+Currently, this intrinsic supports the following type combinations:
+
+     lhs                 | rhs                 | Accumulator
+    :-------------------:|:-------------------:|:------------------:
+     `vector<8x8xbf16>`  | `vector<8x8xbf16>`  | `vector<8x8xf32>`
+     `vector<4x8xbf16>`  | `vector<8x4xbf16>`  | `vector<4x4xf32>`
+     `vector<4x8xbf16>`  | `vector<8x8xbf16>`  | `vector<4x8xf32>`
+     `vector<8x1xbf16>`  | `vector<1x8xbf16>`  | `vector<8x8xf32>`
+     `vector<8x8xbf16>`  | `vector<8x4xbf16>`  | `vector<8x4xf32>`
+     `vector<8x8xi8>`    | `vector<8x8xi8>`    | `vector<8x8xi32>`
+     `vector<8x2xi16>`   | `vector<2x8xi16>`   | `vector<8x8xi32>`
+
+Traits: `AlwaysSpeculatableImplTrait`
+
+Interfaces: `ConditionallySpeculatable`, `InferTypeOpInterface`, `NoMemoryEffect (MemoryEffectOpInterface)`
+
+Effects: `MemoryEffects::Effect{}`
+
+#### Operands:
+
+| Operand | Description |
+| :-----: | ----------- |
+| `lhs` | a vector compatible with a lhs operand of AIE2P matrix-multiply and accumulate |
+| `rhs` | a vector compatible with a rhs operand of AIE2P matrix-multiply and accumulate |
+| `acc` | a vector compatible with an accumulator of AIE2P matrix-multiply and accumulate |
+
+#### Results:
+
+| Result | Description |
+| :----: | ----------- |
+| `result` | a vector compatible with an accumulator of AIE2P matrix-multiply and accumulate |
 
 
 

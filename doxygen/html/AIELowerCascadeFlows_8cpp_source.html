@@ -138,9 +138,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        outputDir = WireBundle::South;</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      }</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      builder.create&lt;ConfigureCascadeOp&gt;(builder.getUnknownLoc(), tile,</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>                                         <span class="keyword">static_cast&lt;</span>CascadeDir<span class="keyword">&gt;</span>(inputDir),</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>                                         <span class="keyword">static_cast&lt;</span>CascadeDir<span class="keyword">&gt;</span>(outputDir));</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      ConfigureCascadeOp::create(builder, builder.getUnknownLoc(), tile,</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>                                 <span class="keyword">static_cast&lt;</span>CascadeDir<span class="keyword">&gt;</span>(inputDir),</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>                                 <span class="keyword">static_cast&lt;</span>CascadeDir<span class="keyword">&gt;</span>(outputDir));</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    }</div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <span class="comment">// erase CascadeFlowOps</span></div>
@@ -168,7 +168,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="anamespacemlir_html"><div class="ttname"><a href="namespacemlir.html">mlir</a></div><div class="ttdef"><b>Definition</b> <a href="AIEVecToLLVM_8h_source.html#l00018">AIEVecToLLVM.h:18</a></div></div>
 <div class="ttc" id="anamespacexilinx_1_1AIE_html"><div class="ttname"><a href="namespacexilinx_1_1AIE.html">xilinx::AIE</a></div><div class="ttdoc">Include the generated interface declarations.</div><div class="ttdef"><b>Definition</b> <a href="AIEToConfiguration_8h_source.html#l00018">AIEToConfiguration.h:18</a></div></div>
 <div class="ttc" id="anamespacexilinx_1_1AIE_html_a449c1bdcd09d2f99efa75bd67e269abf"><div class="ttname"><a href="namespacexilinx_1_1AIE.html#a449c1bdcd09d2f99efa75bd67e269abf">xilinx::AIE::createAIELowerCascadeFlowsPass</a></div><div class="ttdeci">std::unique_ptr&lt; mlir::OperationPass&lt; DeviceOp &gt; &gt; createAIELowerCascadeFlowsPass()</div><div class="ttdef"><b>Definition</b> <a href="AIELowerCascadeFlows_8cpp_source.html#l00094">AIELowerCascadeFlows.cpp:94</a></div></div>
-<div class="ttc" id="anamespacexilinx_1_1AIE_html_a5075ab7e34c319a0cf5dbe049e6848f7"><div class="ttname"><a href="namespacexilinx_1_1AIE.html#a5075ab7e34c319a0cf5dbe049e6848f7">xilinx::AIE::dst</a></div><div class="ttdeci">Port dst</div><div class="ttdef"><b>Definition</b> <a href="AIEDialect_8h_source.html#l00150">AIEDialect.h:150</a></div></div>
+<div class="ttc" id="anamespacexilinx_1_1AIE_html_a5075ab7e34c319a0cf5dbe049e6848f7"><div class="ttname"><a href="namespacexilinx_1_1AIE.html#a5075ab7e34c319a0cf5dbe049e6848f7">xilinx::AIE::dst</a></div><div class="ttdeci">Port dst</div><div class="ttdef"><b>Definition</b> <a href="AIEDialect_8h_source.html#l00153">AIEDialect.h:153</a></div></div>
 <div class="ttc" id="anamespacexilinx_1_1AIE_html_a99b99b2f5e14ab0ccf4cd9c2ca6180da"><div class="ttname"><a href="namespacexilinx_1_1AIE.html#a99b99b2f5e14ab0ccf4cd9c2ca6180da">xilinx::AIE::src</a></div><div class="ttdeci">PathEndPoint src</div><div class="ttdef"><b>Definition</b> <a href="AIEPathFinder_8h_source.html#l00128">AIEPathFinder.h:128</a></div></div>
 <div class="ttc" id="anamespacexilinx_html"><div class="ttname"><a href="namespacexilinx.html">xilinx</a></div><div class="ttdef"><b>Definition</b> <a href="AIEToConfiguration_8h_source.html#l00018">AIEToConfiguration.h:18</a></div></div>
 <div class="ttc" id="astructAIELowerCascadeFlowsPass_html"><div class="ttname"><a href="structAIELowerCascadeFlowsPass.html">AIELowerCascadeFlowsPass</a></div><div class="ttdef"><b>Definition</b> <a href="AIELowerCascadeFlows_8cpp_source.html#l00025">AIELowerCascadeFlows.cpp:26</a></div></div>
@@ -177,7 +177,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Sep 7 2025 12:52:55 for MLIR-AIE by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Sun Dec 28 2025 07:16:00 for MLIR-AIE by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

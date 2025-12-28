@@ -257,6 +257,11 @@ typically be outlined into the LLVM dialect, eventually resulting in a binary fi
 for each core.  The name of this file can be be specified using the `elf_file`
 attribute.
 
+If the `elf_file` attribute is present, no MLIR besides a terminator may be
+present in the core; in that case, the binary file linked dictates what 
+will run in the core. The path specified should is relative to the MLIR
+file.
+
 This op has an optional `stackSize` attribute, to control the amount of memory (in bytes)
 reserved for the stack.  The default value is 1024.  The stack (and other data allocations)
 are always stored in the local core memory, to avoid conflicts with static data allocations
@@ -335,7 +340,7 @@ _Define an AIE design targetting a complete device_
 Syntax:
 
 ```
-operation ::= `aie.device` `(` $device `)` regions attr-dict
+operation ::= `aie.device` `(` $device `)` ($sym_name^)? regions attr-dict
 ```
 
 This operation describes a design that executes on a particular AIEngine device.
@@ -360,15 +365,16 @@ aie.device(xcvc1902) {
 }
 ```
 
-Traits: `HasParent<mlir::ModuleOp>`, `IsolatedFromAbove`, `SingleBlockImplicitTerminator<EndOp>`, `SingleBlock`, `SymbolTable`
+Traits: `HasDefaultDLTIDataLayout`, `HasParent<mlir::ModuleOp>`, `IsolatedFromAbove`, `SingleBlockImplicitTerminator<EndOp>`, `SingleBlock`, `SymbolTable`
 
-Interfaces: `AIETarget`
+Interfaces: `AIETarget`, `DataLayoutOpInterface`, `Symbol`
 
 #### Attributes:
 
 <table>
 <tr><th>Attribute</th><th>MLIR Type</th><th>Description</th></tr>
 <tr><td><code>device</code></td><td>xilinx::AIE::AIEDeviceAttr</td><td>AIE Device</td></tr>
+<tr><td><code>sym_name</code></td><td>::mlir::StringAttr</td><td>string attribute</td></tr>
 </table>
 
 
@@ -1154,6 +1160,16 @@ all even indices from the stream, followed by all odd indices:
                       ) : !aie.objectfifo<memref<256xi32>>
 ```
 
+The behavior of the objectFifo is further controlled by optional parameters.
+The `repeat_count` parameter specifies the number of times each individual 
+object is repeated during transfer. When `repeat_count == 1`, each object 
+is transferred once.
+
+The `iter_count` parameter specifies the number of iterations of 
+the buffer descriptor chain generated at the lower level. The total number 
+of objects transferred is calculated as `iter_count * elemNumber * repeat_count`.
+When `repeat_count == 1`, this simplifies to `iter_count * elemNumber`.
+
 Traits: `HasParent<DeviceOp>`
 
 Interfaces: `Symbol`
@@ -1173,6 +1189,7 @@ Interfaces: `Symbol`
 <tr><td><code>repeat_count</code></td><td>::mlir::IntegerAttr</td><td>32-bit signless integer attribute whose minimum value is 1</td></tr>
 <tr><td><code>initValues</code></td><td>::mlir::ArrayAttr</td><td>array of ElementsAttr</td></tr>
 <tr><td><code>padDimensions</code></td><td>::xilinx::AIE::BDPadLayoutArrayAttr</td><td></td></tr>
+<tr><td><code>iter_count</code></td><td>::mlir::IntegerAttr</td><td>32-bit signless integer attribute</td></tr>
 </table>
 
 #### Operands:
@@ -1758,6 +1775,29 @@ Traits: `HasParent<PacketRulesOp>`
 
 
 
+### `aie.runtime_sequence` (::xilinx::AIE::RuntimeSequenceOp)
+
+_Program the configuration co-processor of the AI Engine array_
+
+Instructions in this operation allow for runtime (re-)configuration of the AI Engine array, such as configuring data movement buffer descriptors.
+These instructions will execute on the configuration co-processor of the AI Engine array.
+
+Typically, these instructions include configuring the data transfers between host and AIE array on the shims.
+The input arguments are arguments passed in from the host at kernel invocation time. This may include buffers on the host.
+
+Traits: `HasParent<DeviceOp>`, `NoTerminator`
+
+Interfaces: `Symbol`
+
+#### Attributes:
+
+<table>
+<tr><th>Attribute</th><th>MLIR Type</th><th>Description</th></tr>
+<tr><td><code>sym_name</code></td><td>::mlir::StringAttr</td><td>string attribute</td></tr>
+</table>
+
+
+
 ### `aie.shim_dma` (::xilinx::AIE::ShimDMAOp)
 
 _Declare a DMA in the PL shim_
@@ -1814,16 +1854,15 @@ _Runtime allocation information for a single shim DMA_
 Syntax:
 
 ```
-operation ::= `aie.shim_dma_allocation` $sym_name `(` $channel_dir `,` $channel_index `,` $col (`,` $packet^)? `)` attr-dict
+operation ::= `aie.shim_dma_allocation` $sym_name `(` $tile `,` $channel_dir `,` $channel_index (`,` $packet^)? `)` attr-dict
 ```
 
 This op exists for cases where shim_dma configuration is performed outside of MLIR-AIE
 and hence there is no appropriate dma_start operation to indicate which channel is being
-used and on which column the shim_dma is.
+used and on which shim tile the shim_dma is.
 
 It contains attributes for the sym_name of an operation which generated the shim DMA,
-for the DMAChannelDir and channel index, and for the column of the shim tile to which
-the originating operation was mapped.
+for the DMAChannelDir and channel index, and a reference to the shim tile.
 
 Example:
 ```
@@ -1831,26 +1870,33 @@ Example:
   %tile02 = aie.tile(0, 2)
   aie.objectfifo @of_in_0 (%tile00, { %tile02 }, 2) : !aie.objectfifo<memref<64xi16>>
 ```
-could produce the following allocation info (channel direction MM2S, channel index 1, and shim column 0):
+could produce the following allocation info (channel direction MM2S, channel index 1, on tile %tile00):
 ```
-  aie.shim_dma_allocation @of_in_0 (MM2S, 1, 0)
+  aie.shim_dma_allocation @of_in_0 (%tile00, MM2S, 1)
 ```
 
 Traits: `HasParent<DeviceOp>`
+
+Interfaces: `Symbol`
 
 #### Attributes:
 
 <table>
 <tr><th>Attribute</th><th>MLIR Type</th><th>Description</th></tr>
-<tr><td><code>sym_name</code></td><td>::mlir::FlatSymbolRefAttr</td><td>flat symbol reference attribute</td></tr>
+<tr><td><code>sym_name</code></td><td>::mlir::StringAttr</td><td>string attribute</td></tr>
 <tr><td><code>channel_dir</code></td><td>xilinx::AIE::DMAChannelDirAttr</td><td>DMA Channel direction</td></tr>
 <tr><td><code>channel_index</code></td><td>::mlir::IntegerAttr</td><td>64-bit signless integer attribute</td></tr>
-<tr><td><code>col</code></td><td>::mlir::IntegerAttr</td><td>64-bit signless integer attribute</td></tr>
 <tr><td><code>plio</code></td><td>::mlir::BoolAttr</td><td>bool attribute</td></tr>
 <tr><td><code>packet</code></td><td>::xilinx::AIE::PacketInfoAttr</td><td>
     Tuple encoding the type and header of a packet;
   </td></tr>
 </table>
+
+#### Operands:
+
+| Operand | Description |
+| :-----: | ----------- |
+| `tile` | index |
 
 
 
